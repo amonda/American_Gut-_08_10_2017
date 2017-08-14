@@ -54,7 +54,7 @@ Inorder to input using this code, ensure the file path matches the path to the f
 library(readr)
 Meta <- read_delim("~/Desktop/ag-cleaned.txt", #file path name
     "\t", escape_double = FALSE, col_types = cols(AGE_YEARS = col_number(), 
-        BMI = col_number(), BMI_CORRECTED = col_number(), `ENA-BASE-COUNT` = col_number(),HEIGHT_CM = col_number(), VIOSCREEN_FIBER = col_number(),
+        BMI = col_number(), BMI_CORRECTED = col_number(), "#SampleID" = col_character(), `ENA-BASE-COUNT` =col_number(),HEIGHT_CM = col_number(), VIOSCREEN_FIBER = col_number(),
         VIOSCREEN_LOW_FAT_DAIRY_SERVING = col_number(), 
         VIOSCREEN_LYSINE = col_number(), 
         VIOSCREEN_MANNITOL = col_number(), 
@@ -219,6 +219,15 @@ barplot(Categ_CVD40)
 ```{r}
 names(Meta)
 ```
+
+
+###Interactive Data Widget? 
+
+```{r}
+
+
+```
+
 
 ##Input OTU/Taxonomy 
 
