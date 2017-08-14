@@ -1,0 +1,278 @@
+---
+title: "Latest_Analysis"
+author: "Alyssa Monda"
+date: "8/14/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# knitr chunk options set to prevent
+# warnings and messages from being
+# shown in your final document
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+```
+
+##Initial Set up
+Load packages and set the seed for reproducibility
+
+```{r}
+#Downloaded packages 
+library(phyloseq)
+library(dada2)
+library(ggplot2)
+library(biom)
+library(devtools)
+library(knitr)
+library(mixOmics)
+library(tidyverse)
+library(vegan)
+library(mixOmics)
+library(readxl)
+library(tableone)
+library(ReporteRs)
+library(magrittr)
+library(plyr)
+library(RColorBrewer)
+library(DESeq2)
+library(edgeR)
+library(dplyr); packageVersion("dplyr")
+
+#If error in phyloseq load visit this page <https://joey711.github.io/phyloseq/install.html>
+
+set.seed(08152017)
+```
+
+
+##Import Meta Data
+Import Meta Data as DataFrame
+
+Inorder to input using this code, ensure the file path matches the path to the file on your computer. The file listed is found in the "Latest" folder of the AG data within the sub-folder containing the meta data. Download it to your computer and rewrite the code. 
+```{r}
+library(readr)
+Meta <- read_delim("~/Desktop/ag-cleaned.txt", #file path name
+    "\t", escape_double = FALSE, col_types = cols(AGE_YEARS = col_number(), 
+        BMI = col_number(), BMI_CORRECTED = col_number(), `ENA-BASE-COUNT` = col_number(),HEIGHT_CM = col_number(), VIOSCREEN_FIBER = col_number(),
+        VIOSCREEN_LOW_FAT_DAIRY_SERVING = col_number(), 
+        VIOSCREEN_LYSINE = col_number(), 
+        VIOSCREEN_MANNITOL = col_number(), 
+        VIOSCREEN_SFA100 = col_double(), #capric acid
+        VIOSCREEN_SFA40 = col_double(),#SFA4:0 Butyric Acid
+        VIOSCREEN_SFA170 = col_double(), #margaric acid
+        VIOSCREEN_VEG5_DAY = col_number(), 
+        VIOSCREEN_VEGETABLE_SERVINGS = col_number(), 
+        chao1_1k = col_double()), trim_ws = TRUE)
+```
+
+##Data Exploration for demographic information 
+
+Here I have summarized only a few of the variables in the dataset. In order to find summaries of other variables replace the variable name in the code. 
+
+###Univariate Exploration
+```{r}
+#Summary Statistics for continuous variables.  
+summary(Meta$AGE_YEARS)
+summary(Meta$BMI_CORRECTED) #BMI as listed in variable "BMI" listed has implausible values the corrected version has 8213 missing values and a max BMI of 76.89
+
+#Data Visualization
+boxplot(Meta$AGE_YEARS)
+hist(Meta$AGE_YEARS)
+boxplot(Meta$BMI_CORRECTED)
+hist(Meta$BMI_CORRECTED)
+
+#Scatterplot BMI*AGE to observe for any trends
+plot(Meta$BMI_CORRECTED, Meta$AGE_YEARS)
+
+#Summary Of Categorical Variables
+
+Categ_BodySite<- summary(as.factor(Meta$BODY_SITE))
+Categ_BodySite
+barplot(Categ_BodySite)
+
+Categ_Age<- summary(as.factor(Meta$AGE_CAT))
+Categ_Age
+barplot(Categ_Age)
+
+Categ_BMI<- summary(as.factor(Meta$BMI_CAT))
+Categ_BMI
+barplot(Categ_BMI)
+
+Categ_Race<- summary(as.factor(Meta$RACE))
+Categ_Race
+barplot(Categ_Race)
+
+Categ_Sex<- summary(as.factor(Meta$SEX))
+Categ_Sex
+
+Categ_Education<- summary(as.factor(Meta$LEVEL_OF_EDUCATION))
+Categ_Education
+barplot(Categ_Education)
+
+Categ_Region<- summary(as.factor(Meta$COUNTRY_RESIDENCE))
+Categ_Region
+
+
+Categ_Birth_Country<- summary(as.factor(Meta$COUNTRY_OF_BIRTH))
+Categ_Birth_Country
+
+Categ_Diet<- summary(as.factor(Meta$DIET_TYPE))
+Categ_Diet
+barplot(Categ_Diet)
+
+Categ_Pregnant<- summary(as.factor(Meta$PREGNANT))
+Categ_Pregnant
+
+
+Categ_Delivery<- summary(as.factor(Meta$CSECTION))
+Categ_Delivery
+barplot(Categ_Delivery) #CSECTION=TRUE
+
+Categ_Fed<- summary(as.factor(Meta$FED_AS_INFANT))
+Categ_Fed
+barplot(Categ_Fed)
+
+Categ_Healthy<- summary(as.factor(Meta$SUBSET_HEALTHY))
+Categ_Healthy
+
+Categ_CVD<- summary(as.factor(Meta$CARDIOVASCULAR_DISEASE))
+Categ_CVD
+barplot(Categ_CVD)
+
+Categ_Cancer<- summary(as.factor(Meta$CANCER))
+Categ_Cancer
+barplot(Categ_Cancer)
+
+Categ_Diabetes<- summary(as.factor(Meta$DIABETES))
+Categ_Diabetes
+barplot(Categ_Diabetes)
+
+Categ_Sleep<- summary(as.factor(Meta$SLEEP_DURATION))
+Categ_Sleep
+barplot(Categ_Sleep)
+
+Categ_Pet<- summary(as.factor(Meta$PETS_OTHER))
+Categ_Pet
+
+Categ_Dog<- summary(as.factor(Meta$DOG))
+Categ_Dog
+barplot(Categ_Dog)
+
+Categ_Exercise<- summary(as.factor(Meta$EXERCISE_FREQUENCY))
+Categ_Exercise
+barplot(Categ_Exercise)
+
+```
+
+###Breakdown by Age Split 
+
+```{r}
+
+#Split Meta for Under age 3
+Meta3 <-subset(Meta, AGE_YEARS<3)
+summary(Meta3$AGE_YEARS)
+
+#Under 3 and what they are fed
+Categ_Fed3<- summary(as.factor(Meta3$FED_AS_INFANT))
+Categ_Fed3
+barplot(Categ_Fed3)
+
+#Split Meta for Under age 12
+Meta12 <-subset(Meta, AGE_YEARS<12)
+summary(Meta12$AGE_YEARS)
+
+#Under 12 with Allergies
+Categ_Allergies12<- summary(as.factor(Meta12$SEASONAL_ALLERGIES))
+Categ_Allergies12
+barplot(Categ_Allergies12)
+
+#Split Meta Over 40
+Meta40 <-subset(Meta, AGE_YEARS>40)
+summary(Meta40$AGE_YEARS)
+
+#Over 40 and CVD
+Categ_CVD40<- summary(as.factor(Meta40$CARDIOVASCULAR_DISEASE))
+Categ_CVD40
+barplot(Categ_CVD40)
+
+```
+
+##BiVariate Exploration
+
+*Allergies and ________ in participants under age 12*
+```{r}
+#Seasonal Allergies and Dogs
+
+
+#Seasonal Allergies and Other Pets
+
+
+#Seasonal Allergies and Delivery Method
+
+
+#Seasonal Allergies and Food as Infant
+
+```
+
+###List of all variables available for further analysis
+```{r}
+names(Meta)
+```
+
+##Input OTU/Taxonomy 
+
+Create a phyloseq object to work with inside of the phyloseq package. To do this we will upload the ".biom" file then merge the metadata, OTU, taxonomy, and tree file. This will allow us to explore the diversity of the sample. Again check your file names and paths in order to use this code. (Note: ".biom" file is found in the "OTU" folder of the "latest" data. The "meta" folder appears to be missing the ".biom" file associated with the previously used metadata within the "Meta" folder)
+
+```{r}
+##Import OTU file
+#Data originally downloaded from <ftp://ftp.microbio.me/AmericanGut/latest>
+#Make sure to pull the correct biom file to match the meta data down for analysis. 
+
+# To read in original .biom file use command below 
+file_path<- ("~/Desktop/otu_table.biom")
+dat <- import_biom(file_path)
+
+#To fix error "input string 1 is invalid in this locale" run command "Sys.setlocale(locale="C")" in console and run command chunk again
+
+#Make Phyloseq values for separate pieces of the biom file 
+#Taxonomy
+taxonomy <- tax_table(dat)
+#OTU
+OTU_table<- otu_table(dat)
+
+#MetaData
+#Create Phyloseq object for sample data so it can be merged
+SampleData<- sample_data(Meta)
+SD<-sample_data(Meta)
+
+#Import the tree corresponding to this data ### Will Not work
+tree<-read_tree_greengenes("~/Desktop/97_otus.tree")
+
+#Merge OTU, Taxonomy, and metadata into one phyloseq object called "ps" that can be used for analysis
+Sample_data <- (SD)
+sam_cov <- as.data.frame(Sample_data)
+rownames(sam_cov) <- sam_cov$"#SampleID"
+sd <- sample_data(sam_cov)
+sample_names(sd) #Previous steps fix error in naming of SampleIds
+otus <- otu_table(OTU_table, taxa_are_rows = TRUE)
+sample_names(otus)
+tt <- tax_table(taxonomy)
+ps <- phyloseq(otus, sd, tt,tree) #Step to merge OTU,Taxonomy, and metadata 
+ps #View object and make sure it has all 3 parts
+
+```
+
+###Summary of OTU
+```{r}
+#Summary of OTU
+ntaxa(ps)
+rank_names(ps)
+nsamples(ps)
+sample_names(ps)[1:5]
+otu_table(ps)[1:5, 1:5]
+tax_table(ps)[1:5, 1:4]
+taxa_names(ps)[1:10]
+```
+
+
