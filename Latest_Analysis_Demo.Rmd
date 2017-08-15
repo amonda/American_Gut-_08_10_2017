@@ -241,7 +241,7 @@ datatable(Meta, options = list(pageLength = 25))
 
 Create a phyloseq object to work with inside of the phyloseq package. To do this we will upload the ".biom" file then merge the metadata, OTU, taxonomy, and tree file. This will allow us to explore the diversity of the sample. Again check your file names and paths in order to use this code. (Note: ".biom" file is found in the "OTU" folder of the "latest" data. The "meta" folder appears to be missing the ".biom" file associated with the previously used metadata within the "Meta" folder)
 
-```{r}
+```{r, eval=FALSE, include=TRUE}
 ##Import OTU file
 #Data originally downloaded from <ftp://ftp.microbio.me/AmericanGut/latest>
 #Make sure to pull the correct biom file to match the meta data down for analysis. 
@@ -281,7 +281,7 @@ ps #View object and make sure it has all 3 parts
 ```
 
 ###Summary of OTU
-```{r}
+```{r, eval=FALSE, include=TRUE}
 #Summary of OTU
 ntaxa(ps)
 rank_names(ps)
