@@ -206,10 +206,10 @@ barplot(Categ_CVD40)
 *Allergies and ________ in participants under age 12*
 ```{r}
 #Seasonal Allergies and Dogs
-knitr:: kable (count(Meta12 %>% 'SEASONAL_ALLERGIES', c('DOG')))
+knitr:: kable (count(Meta12, c('SEASONAL_ALLERGIES', 'DOG')))
 
 #or 
-#Meta12 %>% select(SEASONAL_ALLERGIES=c("true", "Yes")) %>% summary(as.factor('DOG'))
+#Meta12 %>% filter(SEASONAL_ALLERGIES=c("true", "Yes")) %>% summary(as.factor('DOG'))
 
 #Seasonal Allergies and Other Pets
 knitr:: kable (count(Meta12, c('SEASONAL_ALLERGIES', 'PETS_OTHER')))
