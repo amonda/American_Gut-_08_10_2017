@@ -187,6 +187,9 @@ Categ_Allergies12<- summary(as.factor(Meta12$SEASONAL_ALLERGIES))
 Categ_Allergies12
 barplot(Categ_Allergies12)
 
+#or
+count(Meta12,'SEASONAL_ALLERGIES')
+
 #Split Meta Over 40
 Meta40 <-subset(Meta, AGE_YEARS>40)
 summary(Meta40$AGE_YEARS)
@@ -203,15 +206,19 @@ barplot(Categ_CVD40)
 *Allergies and ________ in participants under age 12*
 ```{r}
 #Seasonal Allergies and Dogs
+knitr:: kable (count(Meta12 %>% 'SEASONAL_ALLERGIES', c('DOG')))
 
+#or 
+#Meta12 %>% select(SEASONAL_ALLERGIES=c("true", "Yes")) %>% summary(as.factor('DOG'))
 
 #Seasonal Allergies and Other Pets
-
+knitr:: kable (count(Meta12, c('SEASONAL_ALLERGIES', 'PETS_OTHER')))
 
 #Seasonal Allergies and Delivery Method
-
+knitr:: kable (count(Meta12, c('SEASONAL_ALLERGIES', 'CSECTION')))
 
 #Seasonal Allergies and Food as Infant
+knitr:: kable (count(Meta12, c('SEASONAL_ALLERGIES', 'FED_AS_INFANT')))
 
 ```
 
@@ -221,11 +228,12 @@ names(Meta)
 ```
 
 
-###Interactive Data Widget? 
+###Interactive Data Widget
 
+Here is an intereactive and searchable version of the dataset. The same could also be done by exporting it to an excel file. 
 ```{r}
-
-
+library(DT)
+datatable(Meta, options = list(pageLength = 25))
 ```
 
 
@@ -242,7 +250,7 @@ Create a phyloseq object to work with inside of the phyloseq package. To do this
 file_path<- ("~/Desktop/otu_table.biom")
 dat <- import_biom(file_path)
 
-#To fix error "input string 1 is invalid in this locale" run command "Sys.setlocale(locale="C")" in console and run command chunk again
+#To fix error saying "input string 1 is invalid in this locale" run command "Sys.setlocale(locale="C")" in console and run command chunk again
 
 #Make Phyloseq values for separate pieces of the biom file 
 #Taxonomy
@@ -258,7 +266,7 @@ SD<-sample_data(Meta)
 #Import the tree corresponding to this data ### Will Not work
 tree<-read_tree_greengenes("~/Desktop/97_otus.tree")
 
-#Merge OTU, Taxonomy, and metadata into one phyloseq object called "ps" that can be used for analysis
+#Merge OTU, Taxonomy, and metadata into one phyloseq object called "ps"that can be used for analysis
 Sample_data <- (SD)
 sam_cov <- as.data.frame(Sample_data)
 rownames(sam_cov) <- sam_cov$"#SampleID"
